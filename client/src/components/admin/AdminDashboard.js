@@ -64,7 +64,27 @@ const AdminDashboard = () => {
 
     return (
         <div>
-            <h1 style={{ marginBottom: '2rem', color: '#1e293b' }}>Admin Dashboard</h1>
+            {/* PMI Header Section */}
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                marginBottom: '2rem',
+                padding: '1.5rem',
+                backgroundColor: 'var(--pmi-white)',
+                borderRadius: '8px',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                borderLeft: '4px solid var(--pmi-primary-blue)'
+            }}>
+                <img 
+                    src="/pmi-logo.png" 
+                    alt="PMI Logo" 
+                    style={{ height: '60px', marginRight: '1rem' }}
+                />
+                <div>
+                    <h1 style={{ margin: 0, color: 'var(--pmi-primary-blue)', fontSize: '2rem' }}>Admin Dashboard</h1>
+                    <p style={{ margin: 0, color: 'var(--pmi-gray)', fontSize: '1rem' }}>PMI Exam Portal Administration</p>
+                </div>
+            </div>
 
             {/* Statistics Cards */}
             <div style={{
@@ -76,75 +96,75 @@ const AdminDashboard = () => {
                 <div className="card">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
-                            <h3 style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                            <h3 style={{ color: 'var(--pmi-gray)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
                                 Total Users
                             </h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b' }}>
+                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--pmi-primary-blue)' }}>
                                 {stats?.users?.totalUsers || 0}
                             </p>
-                            <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--pmi-gray)' }}>
                                 {stats?.users?.activeUsers || 0} active
                             </p>
                         </div>
-                        <FaUsers size={32} style={{ color: '#3b82f6' }} />
+                        <FaUsers size={32} style={{ color: 'var(--pmi-secondary-blue)' }} />
                     </div>
                 </div>
 
                 <div className="card">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
-                            <h3 style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                            <h3 style={{ color: 'var(--pmi-gray)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
                                 Total Exams
                             </h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b' }}>
+                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--pmi-primary-blue)' }}>
                                 {stats?.exams?.totalExams || 0}
                             </p>
-                            <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--pmi-gray)' }}>
                                 {stats?.exams?.activeExams || 0} active
                             </p>
                         </div>
-                        <FaFileAlt size={32} style={{ color: '#10b981' }} />
+                        <FaFileAlt size={32} style={{ color: 'var(--pmi-accent-orange)' }} />
                     </div>
                 </div>
 
                 <div className="card">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
-                            <h3 style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                            <h3 style={{ color: 'var(--pmi-gray)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
                                 Total Results
                             </h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b' }}>
+                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--pmi-primary-blue)' }}>
                                 {stats?.results?.totalResults || 0}
                             </p>
-                            <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--pmi-gray)' }}>
                                 {stats?.results?.passRate || 0}% pass rate
                             </p>
                         </div>
-                        <FaChartBar size={32} style={{ color: '#f59e0b' }} />
+                        <FaChartBar size={32} style={{ color: 'var(--pmi-light-blue)' }} />
                     </div>
                 </div>
 
                 <div className="card">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
-                            <h3 style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                            <h3 style={{ color: 'var(--pmi-gray)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
                                 Average Score
                             </h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b' }}>
+                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--pmi-primary-blue)' }}>
                                 {isNaN(stats?.results?.averageScore) ? 0 : (stats?.results?.averageScore || 0)}%
                             </p>
-                            <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--pmi-gray)' }}>
                                 Recent: {stats?.results?.recentResults || 0}
                             </p>
                         </div>
-                        <FaChartBar size={32} style={{ color: '#8b5cf6' }} />
+                        <FaChartBar size={32} style={{ color: 'var(--pmi-secondary-blue)' }} />
                     </div>
                 </div>
             </div>
 
             {/* Quick Actions */}
             <div className="card">
-                <h2 style={{ marginBottom: '1rem', color: '#1e293b' }}>Quick Actions</h2>
+                <h2 style={{ marginBottom: '1rem', color: 'var(--pmi-primary-blue)', borderBottom: '2px solid var(--pmi-secondary-blue)', paddingBottom: '0.5rem' }}>Quick Actions</h2>
                 <div style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -167,52 +187,52 @@ const AdminDashboard = () => {
 
             {/* Recent Activity */}
             <div className="card">
-                <h2 style={{ marginBottom: '1rem', color: '#1e293b' }}>System Overview</h2>
+                <h2 style={{ marginBottom: '1rem', color: 'var(--pmi-primary-blue)', borderBottom: '2px solid var(--pmi-secondary-blue)', paddingBottom: '0.5rem' }}>System Overview</h2>
                 <div style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
                     gap: '1rem'
                 }}>
                     <div>
-                        <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: '#374151' }}>User Statistics</h3>
+                        <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: 'var(--pmi-primary-blue)' }}>User Statistics</h3>
                         <ul style={{ listStyle: 'none', padding: 0 }}>
                             <li style={{ padding: '0.5rem 0', borderBottom: '1px solid #e5e7eb' }}>
-                                <span style={{ color: '#64748b' }}>Admin Users:</span>
-                                <span style={{ float: 'right', fontWeight: 'bold' }}>{stats?.users?.adminUsers || 0}</span>
+                                <span style={{ color: 'var(--pmi-gray)' }}>Admin Users:</span>
+                                <span style={{ float: 'right', fontWeight: 'bold', color: 'var(--pmi-primary-blue)' }}>{stats?.users?.adminUsers || 0}</span>
                             </li>
                             <li style={{ padding: '0.5rem 0', borderBottom: '1px solid #e5e7eb' }}>
-                                <span style={{ color: '#64748b' }}>Student Users:</span>
-                                <span style={{ float: 'right', fontWeight: 'bold' }}>{stats?.users?.studentUsers || 0}</span>
+                                <span style={{ color: 'var(--pmi-gray)' }}>Student Users:</span>
+                                <span style={{ float: 'right', fontWeight: 'bold', color: 'var(--pmi-primary-blue)' }}>{stats?.users?.studentUsers || 0}</span>
                             </li>
                             <li style={{ padding: '0.5rem 0', borderBottom: '1px solid #e5e7eb' }}>
-                                <span style={{ color: '#64748b' }}>Users with Exams:</span>
-                                <span style={{ float: 'right', fontWeight: 'bold' }}>{stats?.users?.usersWithExams || 0}</span>
+                                <span style={{ color: 'var(--pmi-gray)' }}>Users with Exams:</span>
+                                <span style={{ float: 'right', fontWeight: 'bold', color: 'var(--pmi-primary-blue)' }}>{stats?.users?.usersWithExams || 0}</span>
                             </li>
                             <li style={{ padding: '0.5rem 0' }}>
-                                <span style={{ color: '#64748b' }}>Users with Results:</span>
-                                <span style={{ float: 'right', fontWeight: 'bold' }}>{stats?.users?.usersWithResults || 0}</span>
+                                <span style={{ color: 'var(--pmi-gray)' }}>Users with Results:</span>
+                                <span style={{ float: 'right', fontWeight: 'bold', color: 'var(--pmi-primary-blue)' }}>{stats?.users?.usersWithResults || 0}</span>
                             </li>
                         </ul>
                     </div>
 
                     <div>
-                        <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: '#374151' }}>Exam Statistics</h3>
+                        <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: 'var(--pmi-primary-blue)' }}>Exam Statistics</h3>
                         <ul style={{ listStyle: 'none', padding: 0 }}>
                             <li style={{ padding: '0.5rem 0', borderBottom: '1px solid #e5e7eb' }}>
-                                <span style={{ color: '#64748b' }}>Total Questions:</span>
-                                <span style={{ float: 'right', fontWeight: 'bold' }}>{stats?.exams?.totalQuestions || 0}</span>
+                                <span style={{ color: 'var(--pmi-gray)' }}>Total Questions:</span>
+                                <span style={{ float: 'right', fontWeight: 'bold', color: 'var(--pmi-primary-blue)' }}>{stats?.exams?.totalQuestions || 0}</span>
                             </li>
                             <li style={{ padding: '0.5rem 0', borderBottom: '1px solid #e5e7eb' }}>
-                                <span style={{ color: '#64748b' }}>Total Assignments:</span>
-                                <span style={{ float: 'right', fontWeight: 'bold' }}>{stats?.exams?.totalAssignments || 0}</span>
+                                <span style={{ color: 'var(--pmi-gray)' }}>Total Assignments:</span>
+                                <span style={{ float: 'right', fontWeight: 'bold', color: 'var(--pmi-primary-blue)' }}>{stats?.exams?.totalAssignments || 0}</span>
                             </li>
                             <li style={{ padding: '0.5rem 0', borderBottom: '1px solid #e5e7eb' }}>
-                                <span style={{ color: '#64748b' }}>Total Results:</span>
-                                <span style={{ float: 'right', fontWeight: 'bold' }}>{stats?.exams?.totalResults || 0}</span>
+                                <span style={{ color: 'var(--pmi-gray)' }}>Total Results:</span>
+                                <span style={{ float: 'right', fontWeight: 'bold', color: 'var(--pmi-primary-blue)' }}>{stats?.exams?.totalResults || 0}</span>
                             </li>
                             <li style={{ padding: '0.5rem 0' }}>
-                                <span style={{ color: '#64748b' }}>Average Score:</span>
-                                <span style={{ float: 'right', fontWeight: 'bold' }}>{isNaN(stats?.exams?.averageScore) ? 0 : (stats?.exams?.averageScore || 0)}%</span>
+                                <span style={{ color: 'var(--pmi-gray)' }}>Average Score:</span>
+                                <span style={{ float: 'right', fontWeight: 'bold', color: 'var(--pmi-primary-blue)' }}>{isNaN(stats?.exams?.averageScore) ? 0 : (stats?.exams?.averageScore || 0)}%</span>
                             </li>
                         </ul>
                     </div>

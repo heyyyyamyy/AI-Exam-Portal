@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { FaPlus, FaEdit, FaTrash, FaUpload } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaUpload, FaDownload } from 'react-icons/fa';
 
 const QuestionList = ({ examId, examTitle }) => {
     const [questions, setQuestions] = useState([]);
@@ -59,7 +59,15 @@ const QuestionList = ({ examId, examTitle }) => {
             resetForm();
             fetchQuestions();
         } catch (error) {
-            const message = error.response?.data?.message || 'Operation failed';
+            let message = 'Operation failed';
+            
+            if (error.response?.data?.message) {
+                message = error.response.data.message;
+            } else if (error.response?.data?.errors && error.response.data.errors.length > 0) {
+                // Handle validation errors
+                message = error.response.data.errors.map(err => err.msg).join(', ');
+            }
+            
             toast.error(message);
         }
     };
@@ -122,6 +130,93 @@ const QuestionList = ({ examId, examTitle }) => {
         }
     };
 
+    const handleDownloadTemplate = async () => {
+        try {
+            console.log('Starting template download...');
+            
+            // Check if user is authenticated
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Please log in to download the template');
+                return;
+            }
+            
+            console.log('Making request to /api/exams/questions-template');
+            const response = await axios.get('/api/exams/questions-template', {
+                responseType: 'blob',
+                timeout: 30000 // 30 second timeout
+            });
+            
+            console.log('Response received:', response.status, response.headers);
+            
+            // Validate response
+            if (!response.data || response.data.size === 0) {
+                throw new Error('Received empty file from server');
+            }
+            
+            // Create blob and download
+            const blob = new Blob([response.data], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+            
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'questions-template.xlsx');
+            
+            // Ensure link is added to DOM for Firefox compatibility
+            document.body.appendChild(link);
+            link.click();
+            
+            // Cleanup
+            setTimeout(() => {
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+            
+            console.log('Template download completed successfully');
+            toast.success('Template downloaded successfully');
+            
+        } catch (error) {
+            console.error('Download template error:', error);
+            
+            let errorMessage = 'Failed to download template';
+            
+            if (error.response) {
+                // Server responded with error
+                console.error('Server error response:', error.response.status, error.response.data);
+                
+                if (error.response.status === 401) {
+                    errorMessage = 'Authentication failed. Please log in again.';
+                } else if (error.response.status === 403) {
+                    errorMessage = 'Access denied. Admin privileges required.';
+                } else if (error.response.status === 500) {
+                    const serverError = error.response.data;
+                    errorMessage = serverError.message || 'Server error occurred';
+                    
+                    // Log additional server error details
+                    if (serverError.error) {
+                        console.error('Server error details:', serverError.error);
+                    }
+                } else {
+                    errorMessage = `Server error: ${error.response.status}`;
+                }
+            } else if (error.request) {
+                // Network error
+                console.error('Network error:', error.request);
+                errorMessage = 'Network error. Please check your connection and try again.';
+            } else if (error.code === 'ECONNABORTED') {
+                // Timeout error
+                errorMessage = 'Request timeout. Please try again.';
+            } else {
+                // Other error
+                errorMessage = error.message || 'An unexpected error occurred';
+            }
+            
+            toast.error(errorMessage);
+        }
+    };
+
     const resetForm = () => {
         setFormData({
             questionText: '',
@@ -170,6 +265,9 @@ const QuestionList = ({ examId, examTitle }) => {
             <div className="header">
                 <h3>Questions for "{examTitle}"</h3>
                 <div className="actions">
+                    <button className="btn btn-outline" onClick={handleDownloadTemplate} style={{ marginRight: '10px' }}>
+                        <FaDownload /> Download Template
+                    </button>
                     <button className="btn btn-secondary" onClick={openImportModal} style={{ marginRight: '10px' }}>
                         <FaUpload /> Import from Excel
                     </button>

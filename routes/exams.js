@@ -616,4 +616,157 @@ router.get('/stats/overview', async (req, res) => {
     }
 });
 
-module.exports = router; 
+// @route   GET /api/exams/questions-template
+// @desc    Download Excel template for question import
+// @access  Private (Admin)
+router.get('/questions-template', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        console.log('Template download requested by user:', req.user?.id);
+        
+        // Validate xlsx library is available
+        if (!xlsx) {
+            console.error('XLSX library not available');
+            return res.status(500).json({ 
+                message: 'Excel processing library not available',
+                error: 'XLSX_NOT_AVAILABLE'
+            });
+        }
+        
+        // Create a new workbook
+        const workbook = xlsx.utils.book_new();
+        
+        // Define the headers for the template
+        const headers = [
+            'Question',
+            'OptionA', 
+            'OptionB',
+            'OptionC',
+            'OptionD',
+            'CorrectAnswer',
+            'Points',
+            'Explanation'
+        ];
+        
+        // Create worksheet with just headers
+        const worksheet = xlsx.utils.aoa_to_sheet([headers]);
+        
+        // Set column widths for better readability
+        worksheet['!cols'] = [
+            { wch: 50 }, // Question
+            { wch: 20 }, // OptionA
+            { wch: 20 }, // OptionB
+            { wch: 20 }, // OptionC
+            { wch: 20 }, // OptionD
+            { wch: 15 }, // CorrectAnswer
+            { wch: 10 }, // Points
+            { wch: 30 }  // Explanation
+        ];
+        
+        // Add worksheet to workbook
+        xlsx.utils.book_append_sheet(workbook, worksheet, 'Questions Template');
+        
+        // Generate buffer with error handling
+        let buffer;
+        try {
+            buffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+        } catch (xlsxError) {
+            console.error('XLSX write error:', xlsxError);
+            return res.status(500).json({ 
+                message: 'Failed to generate Excel file',
+                error: 'XLSX_WRITE_ERROR'
+            });
+        }
+        
+        // Validate buffer was created
+        if (!buffer || buffer.length === 0) {
+            console.error('Empty buffer generated');
+            return res.status(500).json({ 
+                message: 'Generated file is empty',
+                error: 'EMPTY_BUFFER'
+            });
+        }
+        
+        console.log('Template file generated successfully, size:', buffer.length, 'bytes');
+        
+        // Set response headers with proper CORS headers
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename="questions-template.xlsx"');
+        res.setHeader('Content-Length', buffer.length);
+        res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+        
+        // Send the file
+        res.send(buffer);
+        
+        console.log('Template download completed successfully');
+    } catch (error) {
+        console.error('Download template error:', error);
+        console.error('Error stack:', error.stack);
+        
+        // Provide detailed error information for debugging
+        const errorResponse = {
+            message: 'Failed to generate template file',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        };
+        
+        // Add additional context in development
+        if (process.env.NODE_ENV === 'development') {
+            errorResponse.stack = error.stack;
+            errorResponse.details = 'Check server logs for more information';
+        }
+        
+        res.status(500).json(errorResponse);
+    }
+});
+
+// @route   GET /api/exams/health-check
+// @desc    Health check endpoint for debugging
+// @access  Private (Admin)
+router.get('/health-check', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const healthStatus = {
+            timestamp: new Date().toISOString(),
+            server: 'running',
+            database: 'unknown',
+            xlsx: xlsx ? 'available' : 'not available',
+            user: {
+                id: req.user?.id,
+                role: req.user?.role,
+                authenticated: !!req.user
+            },
+            environment: process.env.NODE_ENV || 'development'
+        };
+        
+        // Test database connection
+        try {
+            await Exam.findOne({ limit: 1 });
+            healthStatus.database = 'connected';
+        } catch (dbError) {
+            healthStatus.database = 'error';
+            healthStatus.databaseError = dbError.message;
+        }
+        
+        // Test XLSX functionality
+        try {
+            const testWorkbook = xlsx.utils.book_new();
+            const testWorksheet = xlsx.utils.aoa_to_sheet([['Test']]);
+            xlsx.utils.book_append_sheet(testWorkbook, testWorksheet, 'Test');
+            const testBuffer = xlsx.write(testWorkbook, { type: 'buffer', bookType: 'xlsx' });
+            healthStatus.xlsxTest = testBuffer.length > 0 ? 'working' : 'failed';
+        } catch (xlsxError) {
+            healthStatus.xlsxTest = 'error';
+            healthStatus.xlsxError = xlsxError.message;
+        }
+        
+        res.json(healthStatus);
+    } catch (error) {
+        console.error('Health check error:', error);
+        res.status(500).json({
+            timestamp: new Date().toISOString(),
+            server: 'error',
+            error: error.message
+        });
+    }
+});
+
+module.exports = router;

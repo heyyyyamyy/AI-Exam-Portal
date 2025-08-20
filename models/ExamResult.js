@@ -74,4 +74,4 @@ const ExamResult = sequelize.define('ExamResult', {
     ]
 });
 
-module.exports = ExamResult; 
+module.exports = ExamResult;

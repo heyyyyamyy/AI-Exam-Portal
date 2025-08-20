@@ -1,0 +1,23 @@
+{
+  "name": "student-dashboard-tests",
+  "version": "1.0.0",
+  "description": "Comprehensive automated test suite for student dashboard",
+  "main": "test-student-dashboard.js",
+  "scripts": {
+    "test": "node test-student-dashboard.js",
+    "test:headless": "HEADLESS=true node test-student-dashboard.js",
+    "install-deps": "npm install puppeteer fs path"
+  },
+  "dependencies": {
+    "puppeteer": "^21.0.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "testing",
+    "automation",
+    "puppeteer",
+    "student-dashboard"
+  ],
+  "author": "Test Suite",
+  "license": "MIT"
+}

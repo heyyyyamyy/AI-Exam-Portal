@@ -12,7 +12,6 @@ import {
 
 const StudentDashboard = () => {
     const [exams, setExams] = useState([]);
-    const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -21,13 +20,8 @@ const StudentDashboard = () => {
 
     const fetchDashboardData = async () => {
         try {
-            const [examsResponse, resultsResponse] = await Promise.all([
-                axios.get('/api/results/my-exams'),
-                axios.get('/api/results/my-results')
-            ]);
-
+            const examsResponse = await axios.get('/api/results/my-exams');
             setExams(examsResponse.data.exams || []);
-            setResults(resultsResponse.data.results || []);
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
             toast.error('Failed to load dashboard data');
@@ -47,11 +41,31 @@ const StudentDashboard = () => {
 
     const availableExams = exams.filter(exam => exam.canTake);
     const completedExams = exams.filter(exam => exam.result);
-    const recentResults = results.slice(0, 5);
 
     return (
         <div>
-            <h1 style={{ marginBottom: '2rem', color: '#1e293b' }}>Student Dashboard</h1>
+            {/* PMI Welcome Header */}
+            <div className="card" style={{
+                background: 'linear-gradient(135deg, var(--pmi-primary-blue) 0%, var(--pmi-secondary-blue) 100%)',
+                color: 'var(--pmi-white)',
+                marginBottom: '2rem',
+                textAlign: 'center'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
+                    <img 
+                        src="/pmi-logo.png" 
+                        alt="PMI Logo" 
+                        style={{ 
+                            height: '60px', 
+                            marginRight: '1rem',
+                            objectFit: 'contain',
+                            filter: 'brightness(0) invert(1)'
+                        }} 
+                    />
+                    <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 'bold' }}>Welcome to PMI Exam Portal</h1>
+                </div>
+                <p style={{ fontSize: '1.2rem', opacity: 0.9, margin: 0 }}>Your gateway to professional certification excellence</p>
+            </div>
 
             {/* Statistics Cards */}
             <div style={{
@@ -63,72 +77,68 @@ const StudentDashboard = () => {
                 <div className="card">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
-                            <h3 style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                            <h3 style={{ color: 'var(--pmi-gray)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
                                 Available Exams
                             </h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b' }}>
+                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--pmi-primary-blue)' }}>
                                 {availableExams.length}
                             </p>
-                            <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--pmi-gray)' }}>
                                 Ready to take
                             </p>
                         </div>
-                        <FaFileAlt size={32} style={{ color: '#3b82f6' }} />
+                        <FaFileAlt size={32} style={{ color: 'var(--pmi-secondary-blue)' }} />
                     </div>
                 </div>
 
                 <div className="card">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
-                            <h3 style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                            <h3 style={{ color: 'var(--pmi-gray)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
                                 Completed Exams
                             </h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b' }}>
+                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--pmi-primary-blue)' }}>
                                 {completedExams.length}
                             </p>
-                            <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--pmi-gray)' }}>
                                 Total taken
                             </p>
                         </div>
-                        <FaCheckCircle size={32} style={{ color: '#10b981' }} />
+                        <FaCheckCircle size={32} style={{ color: 'var(--success-green)' }} />
                     </div>
                 </div>
 
                 <div className="card">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
-                            <h3 style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-                                Average Score
+                            <h3 style={{ color: 'var(--pmi-gray)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                                Total Exams
                             </h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b' }}>
-                                {results.length > 0
-                                    ? Math.round(results.reduce((sum, result) => sum + parseFloat(result.score), 0) / results.length)
-                                    : 0}%
+                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--pmi-primary-blue)' }}>
+                                {exams.length}
                             </p>
-                            <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                                Overall performance
+                            <p style={{ fontSize: '0.875rem', color: 'var(--pmi-gray)' }}>
+                                Assigned to you
                             </p>
                         </div>
-                        <FaChartBar size={32} style={{ color: '#f59e0b' }} />
+                        <FaFileAlt size={32} style={{ color: 'var(--pmi-accent-orange)' }} />
                     </div>
                 </div>
 
                 <div className="card">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
-                            <h3 style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-                                Pass Rate
+                            <h3 style={{ color: 'var(--pmi-gray)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                                Completed
                             </h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b' }}>
-                                {results.length > 0
-                                    ? Math.round((results.filter(r => r.isPassed).length / results.length) * 100)
-                                    : 0}%
+                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--pmi-primary-blue)' }}>
+                                {completedExams.length}
                             </p>
-                            <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                                Success rate
+                            <p style={{ fontSize: '0.875rem', color: 'var(--pmi-gray)' }}>
+                                Exams finished
                             </p>
                         </div>
-                        <FaCheckCircle size={32} style={{ color: '#8b5cf6' }} />
+                        <FaCheckCircle size={32} style={{ color: 'var(--pmi-secondary-blue)' }} />
                     </div>
                 </div>
             </div>
@@ -136,7 +146,7 @@ const StudentDashboard = () => {
             {/* Available Exams */}
             {availableExams.length > 0 && (
                 <div className="card">
-                    <h2 style={{ marginBottom: '1rem', color: '#1e293b' }}>Available Exams</h2>
+                    <h2 style={{ marginBottom: '1rem', color: 'var(--pmi-primary-blue)', borderBottom: '2px solid var(--pmi-secondary-blue)', paddingBottom: '0.5rem' }}>Available Exams</h2>
                     <div style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
@@ -149,12 +159,12 @@ const StudentDashboard = () => {
                                 padding: '1rem',
                                 backgroundColor: '#f9fafb'
                             }}>
-                                <h3 style={{ marginBottom: '0.5rem', color: '#1e293b' }}>{exam.name}</h3>
-                                <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
+                                <h3 style={{ marginBottom: '0.5rem', color: 'var(--pmi-primary-blue)' }}>{exam.name}</h3>
+                                <p style={{ fontSize: '0.875rem', color: 'var(--pmi-gray)', marginBottom: '1rem' }}>
                                     {exam.description}
                                 </p>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                                    <div style={{ fontSize: '0.875rem', color: 'var(--pmi-gray)' }}>
                                         <FaClock style={{ marginRight: '0.25rem' }} />
                                         {exam.duration} minutes
                                     </div>
@@ -168,62 +178,11 @@ const StudentDashboard = () => {
                 </div>
             )}
 
-            {/* Recent Results */}
-            {recentResults.length > 0 && (
-                <div className="card">
-                    <h2 style={{ marginBottom: '1rem', color: '#1e293b' }}>Recent Results</h2>
-                    <div className="table">
-                        <table style={{ width: '100%' }}>
-                            <thead>
-                                <tr>
-                                    <th>Exam</th>
-                                    <th>Score</th>
-                                    <th>Status</th>
-                                    <th>Date</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {recentResults.map(result => (
-                                    <tr key={result.id}>
-                                        <td>{result.exam.name}</td>
-                                        <td>
-                                            <span style={{ fontWeight: 'bold' }}>
-                                                {parseFloat(result.score).toFixed(1)}%
-                                            </span>
-                                        </td>
-                                        <td>
-                                            {result.isPassed ? (
-                                                <span className="badge badge-success">
-                                                    <FaCheckCircle style={{ marginRight: '0.25rem' }} />
-                                                    Passed
-                                                </span>
-                                            ) : (
-                                                <span className="badge badge-danger">
-                                                    <FaTimesCircle style={{ marginRight: '0.25rem' }} />
-                                                    Failed
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td>
-                                            {new Date(result.submittedAt).toLocaleDateString()}
-                                        </td>
-                                        <td>
-                                            <Link to={`/student/results/${result.examId}`} className="btn btn-outline" style={{ fontSize: '0.75rem' }}>
-                                                View Details
-                                            </Link>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
+
 
             {/* Quick Actions */}
             <div className="card">
-                <h2 style={{ marginBottom: '1rem', color: '#1e293b' }}>Quick Actions</h2>
+                <h2 style={{ marginBottom: '1rem', color: 'var(--pmi-primary-blue)', borderBottom: '2px solid var(--pmi-secondary-blue)', paddingBottom: '0.5rem' }}>Quick Actions</h2>
                 <div style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -243,4 +202,4 @@ const StudentDashboard = () => {
     );
 };
 
-export default StudentDashboard; 
+export default StudentDashboard;

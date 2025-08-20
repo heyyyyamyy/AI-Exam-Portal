@@ -49,20 +49,169 @@ router.get('/my-exams', authenticateToken, requireStudent, async (req, res) => {
             ]
         });
 
-        // Map exams with their results
-        const examsWithResults = user.assignedExams.map(exam => {
-            const examData = exam.toJSON();
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Process exams to include result information and determine if they can be taken
+        const exams = user.assignedExams.map(exam => {
             const result = user.examResults.find(r => r.examId === exam.id);
-            examData.result = result || null;
-            examData.questionCount = exam.questions.length;
-            examData.canTake = !result && exam.isActive;
-            delete examData.questions;
-            return examData;
+            return {
+                id: exam.id,
+                name: exam.title,
+                description: exam.description,
+                duration: exam.duration,
+                totalQuestions: exam.questions.length,
+                passingScore: exam.passingScore,
+                canTake: !result, // Can take if no result exists
+                result: result ? {
+                    id: result.id,
+                    score: result.score,
+                    status: result.status,
+                    isPassed: result.isPassed,
+                    submittedAt: result.submittedAt
+                } : null
+            };
         });
 
-        res.json({ exams: examsWithResults });
+        res.json({ exams });
     } catch (error) {
         console.error('Get my exams error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// @route   POST /api/results/exam/:examId/exit
+// @desc    Exit exam early and calculate results based on answered questions
+// @access  Private (Student)
+router.post('/exam/:examId/exit', [
+    authenticateToken,
+    requireStudent,
+    body('answers').isArray().withMessage('Answers must be an array'),
+    body('answers.*.questionId').isInt().withMessage('Question ID must be an integer'),
+    body('answers.*.selectedOption').optional().isIn(['A', 'B', 'C', 'D']).withMessage('Selected option must be A, B, C, or D'),
+    body('timeTaken').isInt({ min: 0 }).withMessage('Time taken must be a positive integer')
+], async (req, res) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { answers, timeTaken } = req.body;
+        const examId = parseInt(req.params.examId);
+
+        // Check if user is assigned to this exam
+        const assignment = await UserExamAssignment.findOne({
+            where: {
+                userId: req.user.id,
+                examId
+            },
+            include: [
+                {
+                    model: Exam,
+                    as: 'exam'
+                }
+            ]
+        });
+
+        if (!assignment) {
+            return res.status(404).json({ message: 'Exam not found or not assigned to you' });
+        }
+
+        // Check if user has already taken this exam
+        const existingResult = await ExamResult.findOne({
+            where: {
+                userId: req.user.id,
+                examId
+            }
+        });
+
+        if (existingResult) {
+            return res.status(400).json({ message: 'You have already taken this exam' });
+        }
+
+        // Get questions with correct answers
+        const questions = await Question.findAll({
+            where: { examId },
+            order: [['id', 'ASC']]
+        });
+
+        // Process answers and calculate results (same logic as submit)
+        const responses = [];
+        let correctAnswers = 0;
+        let totalPoints = 0;
+        let earnedPoints = 0;
+        let attemptedQuestions = 0;
+
+        // Create a map of answers for quick lookup
+        const answerMap = new Map();
+        answers.forEach(answer => {
+            answerMap.set(answer.questionId, answer.selectedOption);
+        });
+
+        // Process all questions, including unanswered ones
+        for (const question of questions) {
+            const selectedOption = answerMap.get(question.id) || null;
+            const isAnswered = selectedOption !== null && selectedOption !== undefined;
+            const isCorrect = isAnswered && selectedOption === question.correctOption;
+            const pointsEarned = isCorrect ? question.points : 0;
+
+            responses.push({
+                userId: req.user.id,
+                examId,
+                questionId: question.id,
+                selectedOption: selectedOption,
+                isCorrect,
+                pointsEarned,
+                timeSpent: 0
+            });
+
+            if (isAnswered) {
+                attemptedQuestions++;
+                if (isCorrect) {
+                    correctAnswers++;
+                    earnedPoints += pointsEarned;
+                }
+            }
+            totalPoints += question.points;
+        }
+
+        // Calculate score percentage - if no questions attempted, score is 0
+        const score = attemptedQuestions > 0 && totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0;
+        const isPassed = score >= assignment.exam.passingScore;
+        const status = attemptedQuestions === 0 ? 'incomplete' : (isPassed ? 'passed' : 'failed');
+
+        // Save responses
+        await ExamResponse.bulkCreate(responses);
+
+        // Save result
+        const result = await ExamResult.create({
+            userId: req.user.id,
+            examId,
+            score,
+            totalQuestions: questions.length,
+            attemptedQuestions,
+            correctAnswers,
+            totalPoints,
+            earnedPoints,
+            timeTaken,
+            status,
+            isPassed
+        });
+
+        res.json({
+            message: 'Exam exited and results saved successfully',
+            result: {
+                ...result.toJSON(),
+                exam: {
+                    name: assignment.exam.title,
+                    passingScore: assignment.exam.passingScore
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Exit exam error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
@@ -203,27 +352,37 @@ router.post('/exam/:examId/submit', [
         let correctAnswers = 0;
         let totalPoints = 0;
         let earnedPoints = 0;
+        let attemptedQuestions = 0;
 
-        for (const answer of answers) {
-            const question = questions.find(q => q.id === answer.questionId);
-            if (!question) continue;
+        // Create a map of answers for quick lookup
+        const answerMap = new Map();
+        answers.forEach(answer => {
+            answerMap.set(answer.questionId, answer.selectedOption);
+        });
 
-            const isCorrect = answer.selectedOption === question.correctOption;
+        // Process all questions, including unanswered ones
+        for (const question of questions) {
+            const selectedOption = answerMap.get(question.id) || null;
+            const isAnswered = selectedOption !== null && selectedOption !== undefined;
+            const isCorrect = isAnswered && selectedOption === question.correctOption;
             const pointsEarned = isCorrect ? question.points : 0;
 
             responses.push({
                 userId: req.user.id,
                 examId,
                 questionId: question.id,
-                selectedOption: answer.selectedOption || null,
+                selectedOption: selectedOption,
                 isCorrect,
                 pointsEarned,
                 timeSpent: 0 // You might want to track individual question time
             });
 
-            if (isCorrect) {
-                correctAnswers++;
-                earnedPoints += pointsEarned;
+            if (isAnswered) {
+                attemptedQuestions++;
+                if (isCorrect) {
+                    correctAnswers++;
+                    earnedPoints += pointsEarned;
+                }
             }
             totalPoints += question.points;
         }
@@ -242,6 +401,7 @@ router.post('/exam/:examId/submit', [
             examId,
             score,
             totalQuestions: questions.length,
+            attemptedQuestions,
             correctAnswers,
             totalPoints,
             earnedPoints,
@@ -553,4 +713,4 @@ router.get('/stats/overview', authenticateToken, requireAdmin, async (req, res) 
     }
 });
 
-module.exports = router; 
+module.exports = router;

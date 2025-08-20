@@ -78,7 +78,15 @@ const ExamList = () => {
             resetForm();
             fetchExams();
         } catch (error) {
-            const message = error.response?.data?.message || 'Operation failed';
+            let message = 'Operation failed';
+            
+            if (error.response?.data?.message) {
+                message = error.response.data.message;
+            } else if (error.response?.data?.errors && error.response.data.errors.length > 0) {
+                // Handle validation errors
+                message = error.response.data.errors.map(err => err.msg).join(', ');
+            }
+            
             toast.error(message);
         }
     };

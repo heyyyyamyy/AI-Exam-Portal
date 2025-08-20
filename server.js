@@ -14,16 +14,17 @@ const questionRoutes = require('./routes/questions');
 const resultRoutes = require('./routes/results');
 const pipelineRoutes = require('./routes/pipelines');
 
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Security middleware
 app.use(helmet());
 
-// Rate limiting
+// Rate limiting - increased for testing
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100 // limit each IP to 100 requests per windowMs
+    max: 1000 // limit each IP to 1000 requests per windowMs (increased for testing)
 });
 app.use(limiter);
 
@@ -49,6 +50,7 @@ app.use('/api/exams', examRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/results', resultRoutes);
 app.use('/api/pipelines', pipelineRoutes);
+
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
