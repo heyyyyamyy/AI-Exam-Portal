@@ -29,7 +29,7 @@ app.use(limiter);
 // CORS configuration
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
-        ? ['https://your-domain.com']
+        ? ['https://ai-exam-portal.onrender.com']
         : ['http://localhost:3000'],
     credentials: true
 }));
@@ -47,7 +47,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/exams', examRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/results', resultRoutes);
-
+app.set('trust proxy', 1); // or true for all proxies
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Exam Portal API is running' });

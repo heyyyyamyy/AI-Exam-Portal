@@ -19,6 +19,7 @@ import Navbar from './components/Navbar';
 // Context
 import { AuthContext } from './context/AuthContext';
 
+console.log("REACT_APP_API_URL",process.env.REACT_APP_API_URL);
 // Configure axios defaults
 axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
